@@ -1,0 +1,48 @@
+Backup & Restore
+----------------
+
+Database
+========
+
+backup
+------
+docker compose exec -T oj-postgres pg_dumpall -c -U onlinejudge > "db-$(date -Iseconds).sql"
+
+# zstd
+docker compose exec -T oj-postgres pg_dumpall -c -U onlinejudge | zstd -o "db-$(date -Iseconds).sql.zst"
+
+restore
+-------
+docker compose exec -T oj-postgres psql < "<backup file>"
+
+# zstd
+zstd -d "<backup file>" | docker compose exec postgres psql
+
+Testcase
+========
+
+backup
+------
+tar -cf "testcase-$(date -Iseconds).tar" data/backend/test_case
+
+# zstd
+tar --zstd -cf "testcase-$(date -Iseconds).tar.zst" data/backend/test_case
+
+restore
+-------
+tar -xf "<backup file>"
+
+# zstd
+tar --zstd -xf "<backup file>"
+
+Upgrade
+=======
+
+Minor Updates
+-------------
+If no breaking changes between two versions,
+we can just update deploy config and restart.
+
+git pull
+git checkout $version
+docker compose up -d
